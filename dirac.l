@@ -286,6 +286,7 @@ static void step() {
                 int64_t det = vector_back(stack, 0);
                 if(!det)
                     break;
+                vector_pop_back(stack);
                 call(b);
             }
         } else if(*token == '%') {

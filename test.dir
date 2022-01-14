@@ -1,0 +1,7 @@
+[[%0C!][I,]F#10I,]puts;
+"Test 1: General operations"puts:!
+2 2+'0+H0F B|%I;'=I,I,10I,
+"Test 2: Factorial"puts:!
+[1^1+1^1[*]F%I;]f;10f:!10I,
+"Test 3: Fibonacci"puts:!
+[%I;10I,]pf;[0pf:!1pf:!%3@1[$%`+pf:!]F%$$]fib;20fib:!
