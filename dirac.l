@@ -39,10 +39,6 @@ struct env {
 
 %option noyywrap
 
-/*
-left to implement: variables, functions, stack operations.
-*/
-
 %%
 
 [0-9]+                       { /* Push a number literal. */ TOKEN_OK }
