@@ -46,7 +46,7 @@ struct env {
 [\$\@\%\+\-\*\/\^\`]         { /* Stack operations. */ TOKEN_OK }
 B[\|\&\^\~\>\<]              { /* Bitwise operations. */ TOKEN_OK }
 C(\>\=|\<\=|[\>\<\=]|!)      { /* Comparisons. */ TOKEN_OK }
-H[0-9]+                      { /* Hexadecimal constants. */ TOKEN_OK }
+H[0-9A-F]+                   { /* Hexadecimal constants. */ TOKEN_OK }
 "["                          { /* Lambda start. */ TOKEN_OK }
 "]"                          { /* Lambda end. */ TOKEN_OK }
 [\!\?]                       { /* First class functions. execution, conditional execution */ TOKEN_OK }
