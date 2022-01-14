@@ -224,6 +224,11 @@ int main(int argc, char * argv[]) {
             DYADIC_FETCH;
             vector_push_back(stack, b);
             vector_push_back(stack, a);
+        } else if(*token == '`') {
+            TRIADIC_FETCH;
+            vector_push_back(stack, c);
+            vector_push_back(stack, b);
+            vector_push_back(stack, a);
         } else if(*token == '[') {
             // Find matching ].
             vector_push_back(stack, tp);
