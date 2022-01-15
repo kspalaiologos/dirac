@@ -43,7 +43,7 @@ struct env {
 
 [0-9]+                       { /* Push a number literal. */ TOKEN_OK }
 '(.|\n)                      { /* Push a character literal. */ TOKEN_OK }
-[\$\@\%\+\-\*\/\^\`]         { /* Stack operations. */ TOKEN_OK }
+[\$\@\%\+\-\*\/\^\`\#]       { /* Stack operations. */ TOKEN_OK }
 B[\|\&\^\~\>\<]              { /* Bitwise operations. */ TOKEN_OK }
 C(\>\=|\<\=|[\>\<\=]|!)      { /* Comparisons. */ TOKEN_OK }
 H[0-9A-F]+                   { /* Hexadecimal constants. */ TOKEN_OK }
@@ -217,6 +217,8 @@ static void step() {
         MONADIC_FETCH;
         vector_push_back(stack, vector_back(stack, a));
     } else if(*token == '%') {
+        DYADIC_FETCH; vector_push_back(stack, a % b);
+    } else if(*token == '#') {
         MONADIC_FETCH;
         vector_push_back(stack, a);
         vector_push_back(stack, a);
