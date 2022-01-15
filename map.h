@@ -19,7 +19,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-#include <stdbool.h>
 #include <stddef.h>
 
 /* hashmaps can associate keys with pointer values or integral types. */
@@ -51,7 +50,7 @@ static void hashmap_set(hashmap* map, void* key, size_t ksize, uintptr_t value);
  * it existed in the first place.
  * returns true if the entry already existed, returns false otherwise.
  */
-static bool hashmap_get_set(hashmap* map, void* key, size_t ksize, uintptr_t* out_in);
+static int hashmap_get_set(hashmap* map, void* key, size_t ksize, uintptr_t* out_in);
 
 /* similar to `hashmap_set()`, but when overwriting an entry,
  * you'll be able properly free the old entry's data via a callback.
@@ -60,7 +59,7 @@ static bool hashmap_get_set(hashmap* map, void* key, size_t ksize, uintptr_t* ou
  */
 static void hashmap_set_free(hashmap* map, void* key, size_t ksize, uintptr_t value, hashmap_callback c, void* usr);
 
-static bool hashmap_get(hashmap* map, void* key, size_t ksize, uintptr_t* out_val);
+static int hashmap_get(hashmap* map, void* key, size_t ksize, uintptr_t* out_val);
 
 static int hashmap_size(hashmap* map);
 
@@ -249,7 +248,7 @@ static void hashmap_set(hashmap* m, void* key, size_t ksize, uintptr_t val)
 	entry->value = val;
 }
 
-static bool hashmap_get_set(hashmap* m, void* key, size_t ksize, uintptr_t* out_in)
+static int hashmap_get_set(hashmap* m, void* key, size_t ksize, uintptr_t* out_in)
 {
 	uint32_t hash;
 	struct bucket * entry;
@@ -272,10 +271,10 @@ static bool hashmap_get_set(hashmap* m, void* key, size_t ksize, uintptr_t* out_
 		entry->ksize = ksize;
 		entry->hash = hash;
 
-		return false;
+		return 0;
 	}
 	*out_in = entry->value;
-	return true;
+	return 1;
 }
 
 static void hashmap_set_free(hashmap* m, void* key, size_t ksize, uintptr_t val, hashmap_callback c, void* usr)
@@ -312,7 +311,7 @@ static void hashmap_set_free(hashmap* m, void* key, size_t ksize, uintptr_t val,
 	entry->value = val;
 }
 
-static bool hashmap_get(hashmap* m, void* key, size_t ksize, uintptr_t* out_val)
+static int hashmap_get(hashmap* m, void* key, size_t ksize, uintptr_t* out_val)
 {
 	uint32_t hash = hash_data(key, ksize);
 	struct bucket* entry = find_entry(m, key, ksize, hash);

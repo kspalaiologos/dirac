@@ -329,7 +329,7 @@ static void step() {
         token++;
         if(*token == '#') {
             DYADIC_FETCH;
-            while(true) {
+            while(1) {
                 num det;
                 call(a);
                 det = vector_back(stack, 0);
@@ -358,7 +358,7 @@ static void step() {
             }
         } else if(*token == '~') {
             DYADIC_FETCH;
-            while(true) {
+            while(1) {
                 num det;
                 call(b);
                 call(a);
