@@ -5,6 +5,7 @@
 /* List of my changes (@Palaiologos):
  * - C89 compliance
  * - Remove the tombstone mechanic
+ * - More hash functions
  * 
  * Note: hashing is unnecessary here since the keys are pointers that uniquely
  * correspond to variable names. TODO: simplify and remove hashing?
