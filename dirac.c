@@ -534,8 +534,9 @@ struct env {
     hashmap *data;
 };
 
-#line 537 "dirac.c"
 #line 538 "dirac.c"
+#define YY_NO_UNISTD_H 1
+#line 540 "dirac.c"
 
 #define INITIAL 0
 
@@ -752,10 +753,10 @@ YY_DECL
 		}
 
 	{
-#line 65 "dirac.l"
+#line 66 "dirac.l"
 
 
-#line 758 "dirac.c"
+#line 760 "dirac.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -810,68 +811,68 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 67 "dirac.l"
+#line 68 "dirac.l"
 { /* Push a number literal. */ TOKEN_OK }
 	YY_BREAK
 case 2:
 /* rule 2 can match eol */
 YY_RULE_SETUP
-#line 68 "dirac.l"
+#line 69 "dirac.l"
 { /* Push a character literal. */ TOKEN_OK }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 69 "dirac.l"
+#line 70 "dirac.l"
 { /* Stack operations. */ TOKEN_OK }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 70 "dirac.l"
+#line 71 "dirac.l"
 { /* Bitwise operations. */ TOKEN_OK }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 71 "dirac.l"
+#line 72 "dirac.l"
 { /* Comparisons. */ TOKEN_OK }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 72 "dirac.l"
+#line 73 "dirac.l"
 { /* Hexadecimal constants. */ TOKEN_OK }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 73 "dirac.l"
+#line 74 "dirac.l"
 { /* Lambda start. */ TOKEN_OK }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 74 "dirac.l"
+#line 75 "dirac.l"
 { /* Lambda end. */ TOKEN_OK }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 75 "dirac.l"
+#line 76 "dirac.l"
 { /* First class functions. execution, conditional execution */ TOKEN_OK }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 76 "dirac.l"
+#line 77 "dirac.l"
 { /* Variables. */ TOKEN_OK }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 77 "dirac.l"
+#line 78 "dirac.l"
 { /* Read/write a variable. */ TOKEN_OK }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 78 "dirac.l"
+#line 79 "dirac.l"
 { /* while, for, do..while, if..else */ TOKEN_OK }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 79 "dirac.l"
+#line 80 "dirac.l"
 {
     /* Purposefully allows unterminated comments. */
     int c;
@@ -881,37 +882,37 @@ YY_RULE_SETUP
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 85 "dirac.l"
+#line 86 "dirac.l"
 { /* Input and output, numeric and bytewise. */ TOKEN_OK }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 86 "dirac.l"
+#line 87 "dirac.l"
 { /* Memory management: allocate, free, read, write. */ TOKEN_OK }
 	YY_BREAK
 case 16:
 /* rule 16 can match eol */
 YY_RULE_SETUP
-#line 87 "dirac.l"
+#line 88 "dirac.l"
 { /* Push a null-terminated string. */ TOKEN_OK }
 	YY_BREAK
 case 17:
 /* rule 17 can match eol */
 YY_RULE_SETUP
-#line 88 "dirac.l"
+#line 89 "dirac.l"
 { /* Ignore whitespace. */ }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 89 "dirac.l"
+#line 90 "dirac.l"
 { fprintf(stderr, "Unknown instruction: %c", yytext[0]); exit(1); }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 91 "dirac.l"
+#line 92 "dirac.l"
 ECHO;
 	YY_BREAK
-#line 914 "dirac.c"
+#line 916 "dirac.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1917,7 +1918,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 91 "dirac.l"
+#line 92 "dirac.l"
 
 
 #define TETRADIC_FETCH \
