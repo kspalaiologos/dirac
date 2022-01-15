@@ -516,8 +516,9 @@ static unsigned int err_underflow() {
 /* strdup for platforms that don't have it. */
 static char * sdup(char * s) {
     int len = strlen(s);
-    char * np = malloc(len);
+    char * np = malloc(len + 1);
     memcpy(np, s, len);
+    np[len] = 0;
     return np;
 }
 
