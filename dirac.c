@@ -489,6 +489,7 @@ char *yytext;
 
 #ifndef NO_STDINT
     #include <stdint.h>
+
     #if UINTPTR_MAX == 0xFFFF
         #define num int16_t
         #define DIRAC_16
@@ -502,14 +503,23 @@ char *yytext;
         #define DIRAC_64
         #define WORD_FORMAT "%lld"
     #else
-        #error Unsupported pointer size or pointer size not defined.
+        #error Unsupported pointer size or pointer size not defined. Is <stdint.h> present?
     #endif
 #else
+    typedef unsigned long uint32_t;
+    typedef long int32_t;
+    typedef unsigned int uint16_t;
+    typedef int int16_t;
+    typedef unsigned char uint8_t;
+    typedef char int8_t;
+
     #ifdef DIRAC16
+        typedef uintptr_t unsigned int;
         #define num int
         #define WORD_FORMAT "%d"
     #else
         #ifdef DIRAC32
+            typedef uintptr_t unsigned long;
             #define num long
             #define WORD_FORMAT "%ld"
         #else
@@ -549,9 +559,9 @@ struct env {
     hashmap *data;
 };
 
-#line 553 "dirac.c"
+#line 563 "dirac.c"
 #define YY_NO_UNISTD_H 1
-#line 555 "dirac.c"
+#line 565 "dirac.c"
 
 #define INITIAL 0
 
@@ -768,10 +778,10 @@ YY_DECL
 		}
 
 	{
-#line 81 "dirac.l"
+#line 91 "dirac.l"
 
 
-#line 775 "dirac.c"
+#line 785 "dirac.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -826,68 +836,68 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 83 "dirac.l"
+#line 93 "dirac.l"
 { /* Push a number literal. */ TOKEN_OK }
 	YY_BREAK
 case 2:
 /* rule 2 can match eol */
 YY_RULE_SETUP
-#line 84 "dirac.l"
+#line 94 "dirac.l"
 { /* Push a character literal. */ TOKEN_OK }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 85 "dirac.l"
+#line 95 "dirac.l"
 { /* Stack operations. */ TOKEN_OK }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 86 "dirac.l"
+#line 96 "dirac.l"
 { /* Bitwise operations. */ TOKEN_OK }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 87 "dirac.l"
+#line 97 "dirac.l"
 { /* Comparisons. */ TOKEN_OK }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 88 "dirac.l"
+#line 98 "dirac.l"
 { /* Hexadecimal constants. */ TOKEN_OK }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 89 "dirac.l"
+#line 99 "dirac.l"
 { /* Lambda start. */ TOKEN_OK }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 90 "dirac.l"
+#line 100 "dirac.l"
 { /* Lambda end. */ TOKEN_OK }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 91 "dirac.l"
+#line 101 "dirac.l"
 { /* First class functions. execution, conditional execution */ TOKEN_OK }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 92 "dirac.l"
+#line 102 "dirac.l"
 { /* Variables. */ TOKEN_OK }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 93 "dirac.l"
+#line 103 "dirac.l"
 { /* Read/write a variable. */ TOKEN_OK }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 94 "dirac.l"
+#line 104 "dirac.l"
 { /* while, for, do..while, if..else */ TOKEN_OK }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 95 "dirac.l"
+#line 105 "dirac.l"
 {
     /* Purposefully allows unterminated comments. */
     int c;
@@ -897,37 +907,37 @@ YY_RULE_SETUP
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 101 "dirac.l"
+#line 111 "dirac.l"
 { /* Input and output, numeric and bytewise. */ TOKEN_OK }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 102 "dirac.l"
+#line 112 "dirac.l"
 { /* Memory management: allocate, free, read, write. */ TOKEN_OK }
 	YY_BREAK
 case 16:
 /* rule 16 can match eol */
 YY_RULE_SETUP
-#line 103 "dirac.l"
+#line 113 "dirac.l"
 { /* Push a null-terminated string. */ TOKEN_OK }
 	YY_BREAK
 case 17:
 /* rule 17 can match eol */
 YY_RULE_SETUP
-#line 104 "dirac.l"
+#line 114 "dirac.l"
 { /* Ignore whitespace. */ }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 105 "dirac.l"
+#line 115 "dirac.l"
 { fprintf(stderr, "Unknown instruction: %c", yytext[0]); exit(1); }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 107 "dirac.l"
+#line 117 "dirac.l"
 ECHO;
 	YY_BREAK
-#line 931 "dirac.c"
+#line 941 "dirac.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1933,7 +1943,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 107 "dirac.l"
+#line 117 "dirac.l"
 
 
 #define TETRADIC_FETCH \
