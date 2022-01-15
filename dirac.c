@@ -497,18 +497,18 @@ char *yytext;
 #elif UINTPTR_MAX == 0xFFFFFFFF
     #define num int32_t
     #define DIRAC_32
-    #define WORD_FORMAT "%l"
+    #define WORD_FORMAT "%ld"
 #elif UINTPTR_MAX == 0xFFFFFFFFFFFFFFFFu
     #define num int64_t
     #define DIRAC_64
-    #define WORD_FORMAT "%ll"
+    #define WORD_FORMAT "%lld"
 #else
     #error Unsupported pointer size or pointer size not defined.
 #endif
 
 #define TOKEN_OK vector_push_back(tokens, sdup(yytext));
 
-static int err_underflow() {
+static unsigned int err_underflow() {
     fprintf(stderr, "Error: Stack underflow.");
     abort(); return 0; /* unreachable */
 }
@@ -787,16 +787,12 @@ yy_match:
 			yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
 			++yy_cp;
 			}
-		while ( yy_base[yy_current_state] != 66 );
+		while ( yy_current_state != 37 );
+		yy_cp = (yy_last_accepting_cpos);
+		yy_current_state = (yy_last_accepting_state);
 
 yy_find_action:
 		yy_act = yy_accept[yy_current_state];
-		if ( yy_act == 0 )
-			{ /* have to back up */
-			yy_cp = (yy_last_accepting_cpos);
-			yy_current_state = (yy_last_accepting_state);
-			yy_act = yy_accept[yy_current_state];
-			}
 
 		YY_DO_BEFORE_ACTION;
 
@@ -914,7 +910,7 @@ YY_RULE_SETUP
 #line 91 "dirac.l"
 ECHO;
 	YY_BREAK
-#line 918 "dirac.c"
+#line 914 "dirac.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -981,7 +977,8 @@ case YY_STATE_EOF(INITIAL):
 
 			else
 				{
-				yy_cp = (yy_c_buf_p);
+				yy_cp = (yy_last_accepting_cpos);
+				yy_current_state = (yy_last_accepting_state);
 				goto yy_find_action;
 				}
 			}
@@ -1496,7 +1493,7 @@ static void yy_load_buffer_state  (void)
         b->yy_bs_column = 0;
     }
 
-        b->yy_is_interactive = file ? (isatty( fileno(file) ) > 0) : 0;
+        b->yy_is_interactive = 0;
     
 	errno = oerrno;
 }
@@ -1959,13 +1956,30 @@ static void call(unsigned int a) {
     }
 }
 
+num to_num(char * s, int base) {
+    num n = 0;
+    while(*s) {
+        n *= base;
+        if(isalpha(*s))
+            n += *s - (isupper(*s) ? 'A' : 'a') + 10;
+        else if(isdigit(*s))
+            n += *s - '0';
+        else {
+            fprintf(stderr, "Unsupported character in a numeric constant: %c\n", *s);
+            exit(1);
+        }
+        s++;
+    }
+    return n;
+}
+
 static void step() {
     char * token = tokens[tp++];
     if(isdigit(*token)) {
-        num l = strtoll(token, NULL, 10);
+        num l = to_num(token, 10);
         vector_push_back(stack, l);
     } else if(*token == 'H' && isdigit(token[1])) {
-        num l = strtoll(token + 1, NULL, 16);
+        num l = to_num(token + 1, 16);
         vector_push_back(stack, l);
     } else if(*token == '\'') {
         vector_push_back(stack, token[1]);
@@ -1987,11 +2001,11 @@ static void step() {
             putchar(a);
         } else if(*token == ':') {
             num l = 0;
-            scanf("%" WORD_FORMAT, &l);
+            scanf(WORD_FORMAT, &l);
             vector_push_back(stack, l);
         } else if(*token == ';') {
             MONADIC_FETCH;
-            printf("%" WORD_FORMAT, a);
+            printf(WORD_FORMAT, a);
         }
     } else if(*token == '"') {
         token += strlen(token) - 2;
@@ -2013,27 +2027,32 @@ static void step() {
     } else if(*token == 'M') {
         token++;
         if(*token == '<') {
+            void * ptr;
             MONADIC_FETCH;
-            void * ptr = malloc(a);
+            ptr = malloc(a);
             vector_push_back(stack, (num) ptr);
         } else if(*token == '>') {
             MONADIC_FETCH;
             free((void *) a);
         } else if(*token == '.') {
+            uint8_t * data;
             DYADIC_FETCH;
-            uint8_t * data = (uint8_t *) a;
+            data = (uint8_t *) a;
             vector_push_back(stack, data[b]);
         } else if(*token == ',') {
+            uint8_t * data;
             TRIADIC_FETCH;
-            uint8_t * data = (uint8_t *) a;
+            data = (uint8_t *) a;
             data[b] = c;
         } else if(*token == ':') {
+            num * data;
             DYADIC_FETCH;
-            num * data = (num *) a;
+            data = (num *) a;
             vector_push_back(stack, data[b]);
         } else if(*token == ';') {
+            num * data;
             TRIADIC_FETCH;
-            num * data = (num *) a;
+            data = (num *) a;
             data[b] = c;
         }
     } else if(*token == 'B') {
@@ -2087,8 +2106,8 @@ static void step() {
         vector_push_back(stack, b);
         vector_push_back(stack, a);
     } else if(*token == '[') {
+        num q = 1; size_t i;
         vector_push_back(stack, tp);
-        num q = 1, i;
         for(i = tp; i < vector_size(tokens); i++) {
             if(tokens[i][0] == ']')
                 q--;
@@ -2116,15 +2135,16 @@ static void step() {
     } else if(*token >= 'a' && *token <= 'z') {
         vector_push_back(stack, (num) token);
     } else if(*token == ';') {
+        char * name; num value;
         DYADIC_FETCH;
-        char * name = (char *) b;
-        num value = a;
+        name = (char *) b;
+        value = a;
         hashmap_set(e->data, name, strlen(name), value);
     } else if(*token == ':') {
+        struct env * ce; char * name; num value;
         MONADIC_FETCH;
-        struct env * ce = e;
-        char * name = (char *) a;
-        num value;
+        ce = e;
+        name = (char *) a;
         while(!hashmap_get(ce->data, name, strlen(name), &value)) {
             ce = ce->parent;
             if(ce == NULL) {
@@ -2138,20 +2158,21 @@ static void step() {
         if(*token == '#') {
             DYADIC_FETCH;
             while(true) {
+                num det;
                 call(a);
-                num det = vector_back(stack, 0);
+                det = vector_back(stack, 0);
                 if(!det)
                     break;
                 vector_pop_back(stack);
                 call(b);
             }
         } else if(*token == '%') {
+            num start, end, step, fn, i;
             TETRADIC_FETCH;
-            num start = a;
-            num end = b;
-            num step = c;
-            num fn = d;
-            num i;
+            start = a;
+            end = b;
+            step = c;
+            fn = d;
             if(start < end) {
                 for(i = start; i < end; i += step) {
                     vector_push_back(stack, i);
@@ -2166,9 +2187,10 @@ static void step() {
         } else if(*token == '~') {
             DYADIC_FETCH;
             while(true) {
+                num det;
                 call(b);
                 call(a);
-                num det = vector_back(stack, 0);
+                det = vector_back(stack, 0);
                 if(!det)
                     break;
             }
@@ -2198,6 +2220,7 @@ int main(int argc, char * argv[]) {
     while(tp < vector_size(tokens)) {
         step();
     }
+    return 0;
 }
 
 

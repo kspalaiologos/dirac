@@ -5,6 +5,9 @@
 /* List of my changes (@Palaiologos):
  * - C89 compliance
  * - Remove the tombstone mechanic
+ * 
+ * Note: hashing is unnecessary here since the keys are pointers that uniquely
+ * correspond to variable names. TODO: simplify and remove hashing?
  */
 
 #ifndef _MAP_H_
@@ -160,7 +163,7 @@ static void hashmap_resize(hashmap* m)
 static uint32_t hash_data(const unsigned char* data, size_t size)
 {
 	size_t nblocks = size / 8;
-	uint64_t hash = HASHMAP_HASH_INIT;
+	uint64_t hash = HASHMAP_HASH_INIT, last;
 	size_t i;
 	for (i = 0; i < nblocks; ++i)
 	{
@@ -172,7 +175,7 @@ static uint32_t hash_data(const unsigned char* data, size_t size)
 		data += 8;
 	}
 
-	uint64_t last = size & 0xff;
+	last = size & 0xff;
 	switch (size % 8)
 	{
 	case 7:
@@ -223,11 +226,14 @@ static struct bucket* find_entry(hashmap* m, void* key, size_t ksize, uint32_t h
 
 static void hashmap_set(hashmap* m, void* key, size_t ksize, uintptr_t val)
 {
+	uint32_t hash;
+	struct bucket * entry;
+
 	if (m->count + 1 > HASHMAP_MAX_LOAD * m->capacity)
 		hashmap_resize(m);
 
-	uint32_t hash = hash_data(key, ksize);
-	struct bucket* entry = find_entry(m, key, ksize, hash);
+	hash = hash_data(key, ksize);
+	entry = find_entry(m, key, ksize, hash);
 	if (entry->key == NULL)
 	{
 		m->last->next = entry;
@@ -245,11 +251,14 @@ static void hashmap_set(hashmap* m, void* key, size_t ksize, uintptr_t val)
 
 static bool hashmap_get_set(hashmap* m, void* key, size_t ksize, uintptr_t* out_in)
 {
+	uint32_t hash;
+	struct bucket * entry;
+
 	if (m->count + 1 > HASHMAP_MAX_LOAD * m->capacity)
 		hashmap_resize(m);
 
-	uint32_t hash = hash_data(key, ksize);
-	struct bucket* entry = find_entry(m, key, ksize, hash);
+	hash = hash_data(key, ksize);
+	entry = find_entry(m, key, ksize, hash);
 	if (entry->key == NULL)
 	{
 		m->last->next = entry;
@@ -271,11 +280,14 @@ static bool hashmap_get_set(hashmap* m, void* key, size_t ksize, uintptr_t* out_
 
 static void hashmap_set_free(hashmap* m, void* key, size_t ksize, uintptr_t val, hashmap_callback c, void* usr)
 {
+	uint32_t hash;
+	struct bucket * entry;
+
 	if (m->count + 1 > HASHMAP_MAX_LOAD * m->capacity)
 		hashmap_resize(m);
 
-	uint32_t hash = hash_data(key, ksize);
-	struct bucket *entry = find_entry(m, key, ksize, hash);
+	hash = hash_data(key, ksize);
+	entry = find_entry(m, key, ksize, hash);
 	if (entry->key == NULL)
 	{
 		m->last->next = entry;

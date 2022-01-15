@@ -89,6 +89,6 @@
 	} while (0)
 
 #define vector_back(vec, idx) \
-    (vector_size(vec) - 1 >= idx ? ((vec)[vector_size(vec) - 1 - idx]) : err_underflow())
+    (vector_size(vec) >= idx + 1 ? ((vec)[vector_size(vec) - 1 - idx]) : err_underflow())
 
 #endif
