@@ -21,6 +21,82 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#define HASHMAP_HASH_INIT 2166136261u
+
+#ifdef DIRAC_64
+static uint32_t hash_data(const unsigned char* data, size_t size)
+{
+	size_t nblocks = size / 8;
+	uint64_t hash = HASHMAP_HASH_INIT, last;
+	size_t i;
+	for (i = 0; i < nblocks; ++i)
+	{
+		hash ^= (uint64_t)data[0] << 0 | (uint64_t)data[1] << 8 |
+			 (uint64_t)data[2] << 16 | (uint64_t)data[3] << 24 |
+			 (uint64_t)data[4] << 32 | (uint64_t)data[5] << 40 |
+			 (uint64_t)data[6] << 48 | (uint64_t)data[7] << 56;
+		hash *= 0xbf58476d1ce4e5b9;
+		data += 8;
+	}
+
+	last = size & 0xff;
+	switch (size % 8)
+	{
+	case 7:
+		last |= (uint64_t)data[6] << 56; /* fallthrough */
+	case 6:
+		last |= (uint64_t)data[5] << 48; /* fallthrough */
+	case 5:
+		last |= (uint64_t)data[4] << 40; /* fallthrough */
+	case 4:
+		last |= (uint64_t)data[3] << 32; /* fallthrough */
+	case 3:
+		last |= (uint64_t)data[2] << 24; /* fallthrough */
+	case 2:
+		last |= (uint64_t)data[1] << 16; /* fallthrough */
+	case 1:
+		last |= (uint64_t)data[0] << 8;
+		hash ^= last;
+		hash *= 0xd6e8feb86659fd93;
+	}
+
+	/* compress to a 32-bit result. also serves as a finalizer. */
+	return hash ^ hash >> 32;
+}
+#else
+#ifdef DIRAC_32
+static uint32_t hash_data(const unsigned char* data, size_t size) {
+	int i, j;
+	unsigned int byte, crc, mask;
+
+	i = 0;
+	crc = 0xFFFFFFFF;
+	while (i < size) {
+		byte = message[i];
+		crc = crc ^ byte;
+		for (j = 7; j >= 0; j--) {
+			mask = -(crc & 1);
+			crc = (crc >> 1) ^ (0xEDB88320 & mask);
+		}
+		i = i + 1;
+	}
+	return ~crc;
+}
+#else
+static uint16_t hash_data(const unsigned char* data, size_t size) {
+    unsigned char x;
+    unsigned short crc = 0xFFFF;
+
+    while (size--){
+        x = crc >> 8 ^ *data++;
+        x ^= x>>4;
+        crc = (crc << 8) ^ ((unsigned short)(x << 12)) ^ ((unsigned short)(x <<5)) ^ ((unsigned short)x);
+    }
+    return crc;
+}
+#endif
+#endif
+
 /* hashmaps can associate keys with pointer values or integral types. */
 typedef struct hashmap hashmap;
 
@@ -154,49 +230,6 @@ static void hashmap_resize(hashmap* m)
 	} while (m->last->next != NULL);
 
 	free(old_buckets);
-}
-
-#define HASHMAP_HASH_INIT 2166136261u
-
-/* FNV-1a hash function */
-static uint32_t hash_data(const unsigned char* data, size_t size)
-{
-	size_t nblocks = size / 8;
-	uint64_t hash = HASHMAP_HASH_INIT, last;
-	size_t i;
-	for (i = 0; i < nblocks; ++i)
-	{
-		hash ^= (uint64_t)data[0] << 0 | (uint64_t)data[1] << 8 |
-			 (uint64_t)data[2] << 16 | (uint64_t)data[3] << 24 |
-			 (uint64_t)data[4] << 32 | (uint64_t)data[5] << 40 |
-			 (uint64_t)data[6] << 48 | (uint64_t)data[7] << 56;
-		hash *= 0xbf58476d1ce4e5b9;
-		data += 8;
-	}
-
-	last = size & 0xff;
-	switch (size % 8)
-	{
-	case 7:
-		last |= (uint64_t)data[6] << 56; /* fallthrough */
-	case 6:
-		last |= (uint64_t)data[5] << 48; /* fallthrough */
-	case 5:
-		last |= (uint64_t)data[4] << 40; /* fallthrough */
-	case 4:
-		last |= (uint64_t)data[3] << 32; /* fallthrough */
-	case 3:
-		last |= (uint64_t)data[2] << 24; /* fallthrough */
-	case 2:
-		last |= (uint64_t)data[1] << 16; /* fallthrough */
-	case 1:
-		last |= (uint64_t)data[0] << 8;
-		hash ^= last;
-		hash *= 0xd6e8feb86659fd93;
-	}
-
-	/* compress to a 32-bit result. also serves as a finalizer. */
-	return hash ^ hash >> 32;
 }
 
 static struct bucket* find_entry(hashmap* m, void* key, size_t ksize, uint32_t hash)

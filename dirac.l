@@ -7,14 +7,6 @@
    of AGPLv3 license.
 */
 
-#include <stdio.h>
-#include <assert.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <ctype.h>
-#include "map.h"
-#include "vector.h"
-
 #if UINTPTR_MAX == 0xFFFF
     #define num int16_t
     #define DIRAC_16
@@ -30,6 +22,14 @@
 #else
     #error Unsupported pointer size or pointer size not defined.
 #endif
+
+#include <stdio.h>
+#include <assert.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <ctype.h>
+#include "map.h"
+#include "vector.h"
 
 #define TOKEN_OK vector_push_back(tokens, sdup(yytext));
 
