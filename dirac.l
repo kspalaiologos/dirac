@@ -24,11 +24,19 @@
     #error Unsupported pointer size or pointer size not defined.
 #endif
 
-#define TOKEN_OK vector_push_back(tokens, strdup(yytext));
+#define TOKEN_OK vector_push_back(tokens, sdup(yytext));
 
 static int err_underflow() {
     fprintf(stderr, "Error: Stack underflow.");
     abort(); return 0; // unreachable
+}
+
+// strdup for platforms that don't have it.
+static char * sdup(char * s) {
+    int len = strlen(s);
+    char * np = malloc(len);
+    memcpy(np, s, len);
+    return np;
 }
 
 static vector(char *) tokens;
