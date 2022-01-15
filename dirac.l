@@ -7,27 +7,52 @@
    of AGPLv3 license.
 */
 
-#if UINTPTR_MAX == 0xFFFF
-    #define num int16_t
-    #define DIRAC_16
-    #define WORD_FORMAT "%d"
-#elif UINTPTR_MAX == 0xFFFFFFFF
-    #define num int32_t
-    #define DIRAC_32
-    #define WORD_FORMAT "%ld"
-#elif UINTPTR_MAX == 0xFFFFFFFFFFFFFFFFu
-    #define num int64_t
-    #define DIRAC_64
-    #define WORD_FORMAT "%lld"
-#else
-    #error Unsupported pointer size or pointer size not defined.
-#endif
-
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
-#include <stdint.h>
 #include <ctype.h>
+
+#ifndef NO_STDINT
+    #include <stdint.h>
+
+    #if UINTPTR_MAX == 0xFFFF
+        #define num int16_t
+        #define DIRAC_16
+        #define WORD_FORMAT "%d"
+    #elif UINTPTR_MAX == 0xFFFFFFFF
+        #define num int32_t
+        #define DIRAC_32
+        #define WORD_FORMAT "%ld"
+    #elif UINTPTR_MAX == 0xFFFFFFFFFFFFFFFFu
+        #define num int64_t
+        #define DIRAC_64
+        #define WORD_FORMAT "%lld"
+    #else
+        #error Unsupported pointer size or pointer size not defined. Is <stdint.h> present?
+    #endif
+#else
+    typedef unsigned long uint32_t;
+    typedef long int32_t;
+    typedef unsigned int uint16_t;
+    typedef int int16_t;
+    typedef unsigned char uint8_t;
+    typedef char int8_t;
+
+    #ifdef DIRAC16
+        typedef uintptr_t unsigned int;
+        #define num int
+        #define WORD_FORMAT "%d"
+    #else
+        #ifdef DIRAC32
+            typedef uintptr_t unsigned long;
+            #define num long
+            #define WORD_FORMAT "%ld"
+        #else
+            #error "Neither DIRAC16 nor DIRAC32 defined."
+        #endif
+    #endif
+#endif
+
 #include "map.h"
 #include "vector.h"
 

@@ -18,7 +18,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
 #include <stddef.h>
 
 #define HASHMAP_HASH_INIT 2166136261u
