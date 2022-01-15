@@ -1,17 +1,14 @@
 
 .PHONY: clean
 
-dirac: lex.yy.o map.o
+dirac: dirac.o
 	gcc $^ -o $@
 
-lex.yy.c: dirac.l
-	lex dirac.l
+dirac.c: dirac.l
+	lex -o dirac.c dirac.l
 
-map.o: map.c
-	cc $(CFLAGS) -c $^ -o $@
-
-lex.yy.o: lex.yy.c
+dirac.o: dirac.c
 	cc $(CFLAGS) -c $^ -o $@
 
 clean:
-	rm *.o lex.yy.c dirac
+	rm *.o dirac

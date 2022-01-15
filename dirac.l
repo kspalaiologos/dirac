@@ -14,6 +14,16 @@
 #include "map.h"
 #include "vector.h"
 
+#if UINTPTR_MAX == 0xFFFF
+    #define num int16_t
+#elif UINTPTR_MAX == 0xFFFFFFFF
+    #define num int32_t
+#elif UINTPTR_MAX == 0xFFFFFFFFFFFFFFFFu
+    #define num int64_t
+#else
+    #error Unsupported pointer size or pointer size not defined.
+#endif
+
 #define TOKEN_OK vector_push_back(tokens, strdup(yytext));
 
 static int err_underflow() {
@@ -23,7 +33,7 @@ static int err_underflow() {
 
 static vector(char *) tokens;
 static vector(unsigned int) callstack;
-static vector(int64_t) stack;
+static vector(num) stack;
 static struct env * e;
 
 static unsigned int tp;
@@ -32,8 +42,6 @@ struct env {
     struct env *parent;
     hashmap *data;
 };
-
-// Rule of thumb: : . - read -- ; , - write
 
 %}
 
@@ -68,26 +76,26 @@ M[\<\>\:\;\.\,]              { /* Memory management: allocate, free, read, write
 %%
 
 #define TETRADIC_FETCH \
-    int64_t a = vector_back(stack, 3); \
-    int64_t b = vector_back(stack, 2); \
-    int64_t c = vector_back(stack, 1); \
-    int64_t d = vector_back(stack, 0); \
+    num a = vector_back(stack, 3); \
+    num b = vector_back(stack, 2); \
+    num c = vector_back(stack, 1); \
+    num d = vector_back(stack, 0); \
     vector_pop_back(stack); vector_pop_back(stack); \
     vector_pop_back(stack); vector_pop_back(stack);
 
 #define TRIADIC_FETCH \
-    int64_t a = vector_back(stack, 2); \
-    int64_t b = vector_back(stack, 1); \
-    int64_t c = vector_back(stack, 0); \
+    num a = vector_back(stack, 2); \
+    num b = vector_back(stack, 1); \
+    num c = vector_back(stack, 0); \
     vector_pop_back(stack); vector_pop_back(stack); vector_pop_back(stack);
 
 #define DYADIC_FETCH \
-    int64_t a = vector_back(stack, 1); \
-    int64_t b = vector_back(stack, 0); \
+    num a = vector_back(stack, 1); \
+    num b = vector_back(stack, 0); \
     vector_pop_back(stack); vector_pop_back(stack);
 
 #define MONADIC_FETCH \
-    int64_t a = vector_back(stack, 0); \
+    num a = vector_back(stack, 0); \
     vector_pop_back(stack);
 
 static void step();
@@ -107,10 +115,10 @@ static void call(unsigned int a) {
 static void step() {
     char * token = tokens[tp++];
     if(isdigit(*token)) {
-        int64_t l = strtoll(token, NULL, 10);
+        num l = strtoll(token, NULL, 10);
         vector_push_back(stack, l);
     } else if(*token == 'H' && isdigit(token[1])) {
-        int64_t l = strtoll(token + 1, NULL, 16);
+        num l = strtoll(token + 1, NULL, 16);
         vector_push_back(stack, l);
     } else if(*token == '\'') {
         vector_push_back(stack, token[1]);
@@ -125,13 +133,13 @@ static void step() {
     } else if(*token == 'I') {
         token++;
         if(*token == '.') {
-            int64_t l = getchar();
+            num l = getchar();
             vector_push_back(stack, l);
         } else if(*token == ',') {
             MONADIC_FETCH;
             putchar(a);
         } else if(*token == ':') {
-            int64_t l = 0;
+            num l = 0;
             scanf("%" SCNd64, &l);
             vector_push_back(stack, l);
         } else if(*token == ';') {
@@ -160,7 +168,7 @@ static void step() {
         if(*token == '<') {
             MONADIC_FETCH;
             void * ptr = malloc(a);
-            vector_push_back(stack, (int64_t) ptr);
+            vector_push_back(stack, (num) ptr);
         } else if(*token == '>') {
             MONADIC_FETCH;
             free((void *) a);
@@ -174,11 +182,11 @@ static void step() {
             data[b] = c;
         } else if(*token == ':') {
             DYADIC_FETCH;
-            int64_t * data = (int64_t *) a;
+            num * data = (num *) a;
             vector_push_back(stack, data[b]);
         } else if(*token == ';') {
             TRIADIC_FETCH;
-            int64_t * data = (int64_t *) a;
+            num * data = (num *) a;
             data[b] = c;
         }
     } else if(*token == 'B') {
@@ -234,7 +242,7 @@ static void step() {
     } else if(*token == '[') {
         // Find matching ].
         vector_push_back(stack, tp);
-        int64_t q = 1, i;
+        num q = 1, i;
         for(i = tp; i < vector_size(tokens); i++) {
             if(tokens[i][0] == ']')
                 q--;
@@ -260,17 +268,17 @@ static void step() {
             call(b);
         }
     } else if(*token >= 'a' && *token <= 'z') {
-        vector_push_back(stack, (int64_t) token);
+        vector_push_back(stack, (num) token);
     } else if(*token == ';') {
         DYADIC_FETCH;
         char * name = (char *) b;
-        int64_t value = a;
+        num value = a;
         hashmap_set(e->data, name, strlen(name), value);
     } else if(*token == ':') {
         MONADIC_FETCH;
         struct env * ce = e;
         char * name = (char *) a;
-        int64_t value;
+        num value;
         while(!hashmap_get(ce->data, name, strlen(name), &value)) {
             ce = ce->parent;
             if(ce == NULL) {
@@ -285,7 +293,7 @@ static void step() {
             DYADIC_FETCH;
             while(true) {
                 call(a);
-                int64_t det = vector_back(stack, 0);
+                num det = vector_back(stack, 0);
                 if(!det)
                     break;
                 vector_pop_back(stack);
@@ -293,17 +301,17 @@ static void step() {
             }
         } else if(*token == '%') {
             TETRADIC_FETCH;
-            int64_t start = a;
-            int64_t end = b;
-            int64_t step = c;
-            int64_t fn = d;
+            num start = a;
+            num end = b;
+            num step = c;
+            num fn = d;
             if(start < end) {
-                for(int64_t i = start; i < end; i += step) {
+                for(num i = start; i < end; i += step) {
                     vector_push_back(stack, i);
                     call(fn);
                 }
             } else if(start > end) {
-                for(int64_t i = start; i >= end; i -= step) {
+                for(num i = start; i >= end; i -= step) {
                     vector_push_back(stack, i);
                     call(fn);
                 }
@@ -313,7 +321,7 @@ static void step() {
             while(true) {
                 call(b);
                 call(a);
-                int64_t det = vector_back(stack, 0);
+                num det = vector_back(stack, 0);
                 if(!det)
                     break;
             }
