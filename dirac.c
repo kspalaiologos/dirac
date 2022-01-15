@@ -506,20 +506,20 @@ char *yytext;
         #error Unsupported pointer size or pointer size not defined. Is <stdint.h> present?
     #endif
 #else
-    typedef unsigned long uint32_t;
-    typedef long int32_t;
-    typedef unsigned int uint16_t;
-    typedef int int16_t;
-    typedef unsigned char uint8_t;
-    typedef char int8_t;
+    #define uint32_t unsigned long
+    #define int32_t long
+    #define uint16_t unsigned int
+    #define int16_t int
+    #define uint8_t unsigned char
+    #define int8_t char
 
     #ifdef DIRAC16
-        typedef uintptr_t unsigned int;
+        #define uintptr_t unsigned int
         #define num int
         #define WORD_FORMAT "%d"
     #else
         #ifdef DIRAC32
-            typedef uintptr_t unsigned long;
+            #define uintptr_t unsigned long
             #define num long
             #define WORD_FORMAT "%ld"
         #else
