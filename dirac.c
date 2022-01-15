@@ -476,10 +476,11 @@ char *yytext;
 #line 1 "dirac.l"
 #line 3 "dirac.l"
 
-// ----------------------------------------------------------------
-// DIRAC - Delightfully Intricate Reasonably Amazing Calculator
-// Copyright (C) by Kamila Szewczyk, 2022. Licensed under the terms
-// of AGPLv3 license.
+/* ----------------------------------------------------------------
+   DIRAC - Delightfully Intricate Reasonably Amazing Calculator
+   Copyright (C) by Kamila Szewczyk, 2022. Licensed under the terms
+   of AGPLv3 license.
+*/
 
 #include <stdio.h>
 #include <assert.h>
@@ -491,10 +492,16 @@ char *yytext;
 
 #if UINTPTR_MAX == 0xFFFF
     #define num int16_t
+    #define DIRAC_16
+    #define WORD_FORMAT "%d"
 #elif UINTPTR_MAX == 0xFFFFFFFF
     #define num int32_t
+    #define DIRAC_32
+    #define WORD_FORMAT "%l"
 #elif UINTPTR_MAX == 0xFFFFFFFFFFFFFFFFu
     #define num int64_t
+    #define DIRAC_64
+    #define WORD_FORMAT "%ll"
 #else
     #error Unsupported pointer size or pointer size not defined.
 #endif
@@ -503,10 +510,10 @@ char *yytext;
 
 static int err_underflow() {
     fprintf(stderr, "Error: Stack underflow.");
-    abort(); return 0; // unreachable
+    abort(); return 0; /* unreachable */
 }
 
-// strdup for platforms that don't have it.
+/* strdup for platforms that don't have it. */
 static char * sdup(char * s) {
     int len = strlen(s);
     char * np = malloc(len);
@@ -526,8 +533,8 @@ struct env {
     hashmap *data;
 };
 
-#line 530 "dirac.c"
-#line 531 "dirac.c"
+#line 537 "dirac.c"
+#line 538 "dirac.c"
 
 #define INITIAL 0
 
@@ -744,10 +751,10 @@ YY_DECL
 		}
 
 	{
-#line 58 "dirac.l"
+#line 65 "dirac.l"
 
 
-#line 751 "dirac.c"
+#line 758 "dirac.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -806,68 +813,68 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 60 "dirac.l"
+#line 67 "dirac.l"
 { /* Push a number literal. */ TOKEN_OK }
 	YY_BREAK
 case 2:
 /* rule 2 can match eol */
 YY_RULE_SETUP
-#line 61 "dirac.l"
+#line 68 "dirac.l"
 { /* Push a character literal. */ TOKEN_OK }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 62 "dirac.l"
+#line 69 "dirac.l"
 { /* Stack operations. */ TOKEN_OK }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 63 "dirac.l"
+#line 70 "dirac.l"
 { /* Bitwise operations. */ TOKEN_OK }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 64 "dirac.l"
+#line 71 "dirac.l"
 { /* Comparisons. */ TOKEN_OK }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 65 "dirac.l"
+#line 72 "dirac.l"
 { /* Hexadecimal constants. */ TOKEN_OK }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 66 "dirac.l"
+#line 73 "dirac.l"
 { /* Lambda start. */ TOKEN_OK }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 67 "dirac.l"
+#line 74 "dirac.l"
 { /* Lambda end. */ TOKEN_OK }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 68 "dirac.l"
+#line 75 "dirac.l"
 { /* First class functions. execution, conditional execution */ TOKEN_OK }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 69 "dirac.l"
+#line 76 "dirac.l"
 { /* Variables. */ TOKEN_OK }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 70 "dirac.l"
+#line 77 "dirac.l"
 { /* Read/write a variable. */ TOKEN_OK }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 71 "dirac.l"
+#line 78 "dirac.l"
 { /* while, for, do..while, if..else */ TOKEN_OK }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 72 "dirac.l"
+#line 79 "dirac.l"
 {
     /* Purposefully allows unterminated comments. */
     int c;
@@ -877,37 +884,37 @@ YY_RULE_SETUP
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 78 "dirac.l"
+#line 85 "dirac.l"
 { /* Input and output, numeric and bytewise. */ TOKEN_OK }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 79 "dirac.l"
+#line 86 "dirac.l"
 { /* Memory management: allocate, free, read, write. */ TOKEN_OK }
 	YY_BREAK
 case 16:
 /* rule 16 can match eol */
 YY_RULE_SETUP
-#line 80 "dirac.l"
+#line 87 "dirac.l"
 { /* Push a null-terminated string. */ TOKEN_OK }
 	YY_BREAK
 case 17:
 /* rule 17 can match eol */
 YY_RULE_SETUP
-#line 81 "dirac.l"
+#line 88 "dirac.l"
 { /* Ignore whitespace. */ }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 82 "dirac.l"
+#line 89 "dirac.l"
 { fprintf(stderr, "Unknown instruction: %c", yytext[0]); exit(1); }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 84 "dirac.l"
+#line 91 "dirac.l"
 ECHO;
 	YY_BREAK
-#line 911 "dirac.c"
+#line 918 "dirac.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1912,7 +1919,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 84 "dirac.l"
+#line 91 "dirac.l"
 
 
 #define TETRADIC_FETCH \
@@ -1980,11 +1987,11 @@ static void step() {
             putchar(a);
         } else if(*token == ':') {
             num l = 0;
-            scanf("%" SCNd64, &l);
+            scanf("%" WORD_FORMAT, &l);
             vector_push_back(stack, l);
         } else if(*token == ';') {
             MONADIC_FETCH;
-            printf("%" PRId64, a);
+            printf("%" WORD_FORMAT, a);
         }
     } else if(*token == '"') {
         token += strlen(token) - 2;
@@ -2080,7 +2087,6 @@ static void step() {
         vector_push_back(stack, b);
         vector_push_back(stack, a);
     } else if(*token == '[') {
-        // Find matching ].
         vector_push_back(stack, tp);
         num q = 1, i;
         for(i = tp; i < vector_size(tokens); i++) {
@@ -2145,13 +2151,14 @@ static void step() {
             num end = b;
             num step = c;
             num fn = d;
+            num i;
             if(start < end) {
-                for(num i = start; i < end; i += step) {
+                for(i = start; i < end; i += step) {
                     vector_push_back(stack, i);
                     call(fn);
                 }
             } else if(start > end) {
-                for(num i = start; i >= end; i -= step) {
+                for(i = start; i >= end; i -= step) {
                     vector_push_back(stack, i);
                     call(fn);
                 }

@@ -1,6 +1,11 @@
 
-// Slightly modified Mashpoe's hashmap implementation.
-// Original: https://github.com/Mashpoe/c-hashmap
+/* Slightly modified Mashpoe's hashmap implementation. */
+/* Original: https://github.com/Mashpoe/c-hashmap */
+
+/* List of my changes (@Palaiologos):
+ * - C89 compliance
+ * - Remove the tombstone mechanic
+ */
 
 #ifndef _MAP_H_
 #define _MAP_H_
@@ -14,46 +19,52 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-// hashmaps can associate keys with pointer values or integral types.
+/* hashmaps can associate keys with pointer values or integral types. */
 typedef struct hashmap hashmap;
 
-// a callback type used for iterating over a map/freeing entries:
-// `void <function name>(void* key, size_t size, uintptr_t value, void* usr)`
-// `usr` is a user pointer which can be passed through `hashmap_iterate`.
+/* a callback type used for iterating over a map/freeing entries:
+ * `void <function name>(void* key, size_t size, uintptr_t value, void* usr)`
+ * `usr` is a user pointer which can be passed through `hashmap_iterate`.
+ */
 typedef void (*hashmap_callback)(void *key, size_t ksize, uintptr_t value, void *usr);
 
 static hashmap* hashmap_create(void);
 
-// only frees the hashmap object and buckets.
-// does not call free on each element's `key` or `value`.
-// to free data associated with an element, call `hashmap_iterate`.
+/* only frees the hashmap object and buckets.
+ * does not call free on each element's `key` or `value`.
+ * to free data associated with an element, call `hashmap_iterate`.
+ */
 static void hashmap_free(hashmap* map);
 
-// does not make a copy of `key`.
-// you must copy it yourself if you want to guarantee its lifetime,
-// or if you intend to call `hashmap_key_free`.
+/* does not make a copy of `key`.
+ * you must copy it yourself if you want to guarantee its lifetime,
+ * or if you intend to call `hashmap_key_free`.
+ */
 static void hashmap_set(hashmap* map, void* key, size_t ksize, uintptr_t value);
 
-// adds an entry if it doesn't exist, using the value of `*out_in`.
-// if it does exist, it sets value in `*out_in`, meaning the value
-// of the entry will be in `*out_in` regardless of whether or not
-// it existed in the first place.
-// returns true if the entry already existed, returns false otherwise.
+/* adds an entry if it doesn't exist, using the value of `*out_in`.
+ * if it does exist, it sets value in `*out_in`, meaning the value
+ * of the entry will be in `*out_in` regardless of whether or not
+ * it existed in the first place.
+ * returns true if the entry already existed, returns false otherwise.
+ */
 static bool hashmap_get_set(hashmap* map, void* key, size_t ksize, uintptr_t* out_in);
 
-// similar to `hashmap_set()`, but when overwriting an entry,
-// you'll be able properly free the old entry's data via a callback.
-// unlike `hashmap_set()`, this function will overwrite the original key pointer,
-// which means you can free the old key in the callback if applicable.
+/* similar to `hashmap_set()`, but when overwriting an entry,
+ * you'll be able properly free the old entry's data via a callback.
+ * unlike `hashmap_set()`, this function will overwrite the original key pointer,
+ * which means you can free the old key in the callback if applicable.
+ */
 static void hashmap_set_free(hashmap* map, void* key, size_t ksize, uintptr_t value, hashmap_callback c, void* usr);
 
 static bool hashmap_get(hashmap* map, void* key, size_t ksize, uintptr_t* out_val);
 
 static int hashmap_size(hashmap* map);
 
-// iterate over the map, calling `c` on every element.
-// goes through elements in the order they were added.
-// the element's key, key size, value, and `usr` will be passed to `c`.
+/* iterate over the map, calling `c` on every element.
+ * goes through elements in the order they were added.
+ * the element's key, key size, value, and `usr` will be passed to `c`.
+ */
 static void hashmap_iterate(hashmap* map, hashmap_callback c, void* usr);
 
 #define HASHMAP_DEFAULT_CAPACITY 20
@@ -62,11 +73,11 @@ static void hashmap_iterate(hashmap* map, hashmap_callback c, void* usr);
 
 struct bucket
 {
-	// `next` must be the first struct element.
-	// changing the order will break multiple functions
+	/* `next` must be the first struct element.
+	 * changing the order will break multiple functions */
 	struct bucket* next;
 
-	// key, key size, key hash, and associated value
+	/* key, key size, key hash, and associated value */
 	void* key;
 	size_t ksize;
 	uint32_t hash;
@@ -79,9 +90,9 @@ struct hashmap
 	int capacity;
 	int count;
 
-	// a linked list of all valid entries, in order
+	/* a linked list of all valid entries, in order */
 	struct bucket* first;
-	// lets us know where to add the next element
+	/* lets us know where to add the next element */
 	struct bucket* last;
 };
 
@@ -94,9 +105,10 @@ static hashmap* hashmap_create(void)
 	m->buckets = calloc(HASHMAP_DEFAULT_CAPACITY, sizeof(struct bucket));
 	m->first = NULL;
 
-	// this prevents branching in hashmap_set.
-	// m->first will be treated as the "next" pointer in an imaginary bucket.
-	// when the first item is added, m->first will be set to the correct address.
+	/* this prevents branching in hashmap_set.
+	 * m->first will be treated as the "next" pointer in an imaginary bucket.
+	 * when the first item is added, m->first will be set to the correct address.
+	 */
 	m->last = (struct bucket*)&m->first;
 	return m;
 }
@@ -107,7 +119,7 @@ static void hashmap_free(hashmap* m)
 	free(m);
 }
 
-// puts an old bucket into a resized hashmap
+/* puts an old bucket into a resized hashmap */
 static struct bucket* resize_entry(hashmap* m, struct bucket* old_entry)
 {
 	uint32_t index = old_entry->hash % m->capacity;
@@ -117,7 +129,7 @@ static struct bucket* resize_entry(hashmap* m, struct bucket* old_entry)
 
 		if (entry->key == NULL)
 		{
-			*entry = *old_entry; // copy data from old entry
+			*entry = *old_entry;
 			return entry;
 		}
 
@@ -130,13 +142,9 @@ static void hashmap_resize(hashmap* m)
 	struct bucket* old_buckets = m->buckets;
 
 	m->capacity *= HASHMAP_RESIZE_FACTOR;
-	// initializes all bucket fields to null
 	m->buckets = calloc(m->capacity, sizeof(struct bucket));
-
-	// same trick; avoids branching
 	m->last = (struct bucket*)&m->first;
 
-	// assumes that an empty map won't be resized
 	do
 	{
 		m->last->next = resize_entry(m, m->last->next);
@@ -148,12 +156,13 @@ static void hashmap_resize(hashmap* m)
 
 #define HASHMAP_HASH_INIT 2166136261u
 
-// FNV-1a hash function
-static inline uint32_t hash_data(const unsigned char* data, size_t size)
+/* FNV-1a hash function */
+static uint32_t hash_data(const unsigned char* data, size_t size)
 {
 	size_t nblocks = size / 8;
 	uint64_t hash = HASHMAP_HASH_INIT;
-	for (size_t i = 0; i < nblocks; ++i)
+	size_t i;
+	for (i = 0; i < nblocks; ++i)
 	{
 		hash ^= (uint64_t)data[0] << 0 | (uint64_t)data[1] << 8 |
 			 (uint64_t)data[2] << 16 | (uint64_t)data[3] << 24 |
@@ -184,8 +193,7 @@ static inline uint32_t hash_data(const unsigned char* data, size_t size)
 		hash *= 0xd6e8feb86659fd93;
 	}
 
-	// compress to a 32-bit result.
-	// also serves as a finalizer.
+	/* compress to a 32-bit result. also serves as a finalizer. */
 	return hash ^ hash >> 32;
 }
 
@@ -197,15 +205,15 @@ static struct bucket* find_entry(hashmap* m, void* key, size_t ksize, uint32_t h
 	{
 		struct bucket* entry = &m->buckets[index];
 
-		// kind of a thicc condition;
-		// I didn't want this to span multiple if statements or functions.
+		/* kind of a thicc condition; */
+		/* I didn't want this to span multiple if statements or functions. */
 		if (entry->key == NULL ||
-			// compare sizes, then hashes, then key data as a last resort.
+			/* compare sizes, then hashes, then key data as a last resort. */
 			(entry->ksize == ksize &&
 			 entry->hash == hash &&
 			 memcmp(entry->key, key, ksize) == 0))
 		{
-			// return the entry if a match or an empty bucket is found
+			/* return the entry if a match or an empty bucket is found */
 			return entry;
 		}
 
@@ -280,15 +288,14 @@ static void hashmap_set_free(hashmap* m, void* key, size_t ksize, uintptr_t val,
 		entry->ksize = ksize;
 		entry->hash = hash;
 		entry->value = val;
-		// there was no overwrite, exit the function.
 		return;
 	}
-	// allow the callback to free entry data.
-	// use old key and value so the callback can free them.
-	// the old key and value will be overwritten after this call.
+	/* allow the callback to free entry data.
+	 * use old key and value so the callback can free them.
+	 * the old key and value will be overwritten after this call. */
 	c(entry->key, ksize, entry->value, usr);
 
-	// overwrite the old key pointer in case the callback frees it.
+	/* overwrite the old key pointer in case the callback frees it. */
 	entry->key = key;
 	entry->value = val;
 }
@@ -298,7 +305,7 @@ static bool hashmap_get(hashmap* m, void* key, size_t ksize, uintptr_t* out_val)
 	uint32_t hash = hash_data(key, ksize);
 	struct bucket* entry = find_entry(m, key, ksize, hash);
 
-	// if there is no match, output val will just be NULL
+	/* if there is no match, output val will just be NULL */
 	*out_val = entry->value;
 
 	return entry->key != NULL;
@@ -311,8 +318,8 @@ static int hashmap_size(hashmap* m)
 
 static void hashmap_iterate(hashmap* m, hashmap_callback c, void* user_ptr)
 {
-	// loop through the linked list of valid entries
-	// this way we can skip over empty buckets
+	/* loop through the linked list of valid entries
+	 * this way we can skip over empty buckets */
 	struct bucket* current = m->first;
 	
 	int co = 0;
@@ -332,4 +339,4 @@ static void hashmap_iterate(hashmap* m, hashmap_callback c, void* user_ptr)
 	}
 }
 
-#endif // map_h
+#endif

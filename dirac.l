@@ -1,10 +1,11 @@
 
 %{
 
-// ----------------------------------------------------------------
-// DIRAC - Delightfully Intricate Reasonably Amazing Calculator
-// Copyright (C) by Kamila Szewczyk, 2022. Licensed under the terms
-// of AGPLv3 license.
+/* ----------------------------------------------------------------
+   DIRAC - Delightfully Intricate Reasonably Amazing Calculator
+   Copyright (C) by Kamila Szewczyk, 2022. Licensed under the terms
+   of AGPLv3 license.
+*/
 
 #include <stdio.h>
 #include <assert.h>
@@ -16,10 +17,16 @@
 
 #if UINTPTR_MAX == 0xFFFF
     #define num int16_t
+    #define DIRAC_16
+    #define WORD_FORMAT "%d"
 #elif UINTPTR_MAX == 0xFFFFFFFF
     #define num int32_t
+    #define DIRAC_32
+    #define WORD_FORMAT "%l"
 #elif UINTPTR_MAX == 0xFFFFFFFFFFFFFFFFu
     #define num int64_t
+    #define DIRAC_64
+    #define WORD_FORMAT "%ll"
 #else
     #error Unsupported pointer size or pointer size not defined.
 #endif
@@ -28,10 +35,10 @@
 
 static int err_underflow() {
     fprintf(stderr, "Error: Stack underflow.");
-    abort(); return 0; // unreachable
+    abort(); return 0; /* unreachable */
 }
 
-// strdup for platforms that don't have it.
+/* strdup for platforms that don't have it. */
 static char * sdup(char * s) {
     int len = strlen(s);
     char * np = malloc(len);
@@ -148,11 +155,11 @@ static void step() {
             putchar(a);
         } else if(*token == ':') {
             num l = 0;
-            scanf("%" SCNd64, &l);
+            scanf("%" WORD_FORMAT, &l);
             vector_push_back(stack, l);
         } else if(*token == ';') {
             MONADIC_FETCH;
-            printf("%" PRId64, a);
+            printf("%" WORD_FORMAT, a);
         }
     } else if(*token == '"') {
         token += strlen(token) - 2;
@@ -248,7 +255,6 @@ static void step() {
         vector_push_back(stack, b);
         vector_push_back(stack, a);
     } else if(*token == '[') {
-        // Find matching ].
         vector_push_back(stack, tp);
         num q = 1, i;
         for(i = tp; i < vector_size(tokens); i++) {
@@ -313,13 +319,14 @@ static void step() {
             num end = b;
             num step = c;
             num fn = d;
+            num i;
             if(start < end) {
-                for(num i = start; i < end; i += step) {
+                for(i = start; i < end; i += step) {
                     vector_push_back(stack, i);
                     call(fn);
                 }
             } else if(start > end) {
-                for(num i = start; i >= end; i -= step) {
+                for(i = start; i >= end; i -= step) {
                     vector_push_back(stack, i);
                     call(fn);
                 }
