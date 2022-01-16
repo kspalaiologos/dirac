@@ -111,9 +111,10 @@ static void call(unsigned int a) {
     e = new_env;
     vector_push_back(callstack, tp);
     tp = a;
-    while(tp < vector_size(tokens) && tokens[tp][0] != ']') {
+    while(tp < vector_size(tokens) && tokens[tp][0] != ']')
         step();
-    }
+    if(tokens[tp][0] == ']')
+        step();
 }
 
 num to_num(char * s, int base) {

@@ -488,7 +488,7 @@ char *yytext;
 */
 
 // lex will allocate ~30K by default which is unacceptable on low memory systems.
-#define YY_BUF_SIZE 200
+#define YY_BUF_SIZE 512
 
 #include <stdio.h>
 #include <assert.h>
@@ -1950,9 +1950,10 @@ static void call(unsigned int a) {
     e = new_env;
     vector_push_back(callstack, tp);
     tp = a;
-    while(tp < vector_size(tokens) && tokens[tp][0] != ']') {
+    while(tp < vector_size(tokens) && tokens[tp][0] != ']')
         step();
-    }
+    if(tokens[tp][0] == ']')
+        step();
 }
 
 num to_num(char * s, int base) {

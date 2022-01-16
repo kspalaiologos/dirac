@@ -145,7 +145,7 @@ static int hashmap_size(hashmap* map);
  */
 static void hashmap_iterate(hashmap* map, hashmap_callback c, void* usr);
 
-#define HASHMAP_DEFAULT_CAPACITY 20
+#define HASHMAP_DEFAULT_CAPACITY 5
 #define HASHMAP_MAX_LOAD 0.75f
 #define HASHMAP_RESIZE_FACTOR 2
 
