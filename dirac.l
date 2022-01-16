@@ -8,6 +8,7 @@
 */
 
 // lex will allocate ~30K by default which is unacceptable on low memory systems.
+#undef YY_BUF_SIZE
 #define YY_BUF_SIZE 512
 
 #include <stdio.h>
