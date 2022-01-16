@@ -7,6 +7,9 @@
    of AGPLv3 license.
 */
 
+// lex will allocate ~30K by default which is unacceptable on low memory systems.
+#define YY_BUF_SIZE 512
+
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
