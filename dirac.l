@@ -16,9 +16,9 @@
     #include <stdint.h>
 
     #if UINTPTR_MAX == 0xFFFF
-        #define num int16_t
+        #define num int32_t
         #define DIRAC_16
-        #define WORD_FORMAT "%d"
+        #define WORD_FORMAT "%ld"
     #elif UINTPTR_MAX == 0xFFFFFFFF
         #define num int32_t
         #define DIRAC_32
@@ -40,15 +40,15 @@
 
     #ifdef DIRAC16
         #define uintptr_t unsigned int
-        #define num int
-        #define WORD_FORMAT "%d"
+        #define num long
+        #define WORD_FORMAT "%ld"
     #else
         #ifdef DIRAC32
             #define uintptr_t unsigned long
             #define num long
             #define WORD_FORMAT "%ld"
         #else
-            #error "Neither DIRAC16 nor DIRAC32 defined."
+            #error "Neither DIRAC16 nor DIRAC32 defined. 64-bit builds on machines without <stdint.h> are not supported."
         #endif
     #endif
 #endif
