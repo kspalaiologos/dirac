@@ -11,48 +11,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <ctype.h>
-
-#ifndef NO_STDINT
-    #include <stdint.h>
-
-    #if UINTPTR_MAX == 0xFFFF
-        #define num int32_t
-        #define DIRAC_16
-        #define WORD_FORMAT "%ld"
-    #elif UINTPTR_MAX == 0xFFFFFFFF
-        #define num int32_t
-        #define DIRAC_32
-        #define WORD_FORMAT "%ld"
-    #elif UINTPTR_MAX == 0xFFFFFFFFFFFFFFFFu
-        #define num int64_t
-        #define DIRAC_64
-        #define WORD_FORMAT "%lld"
-    #else
-        #error Unsupported pointer size or pointer size not defined. Is <stdint.h> present?
-    #endif
-#else
-    #define uint32_t unsigned long
-    #define int32_t long
-    #define uint16_t unsigned int
-    #define int16_t int
-    #define uint8_t unsigned char
-    #define int8_t char
-
-    #ifdef DIRAC16
-        #define uintptr_t unsigned int
-        #define num long
-        #define WORD_FORMAT "%ld"
-    #else
-        #ifdef DIRAC32
-            #define uintptr_t unsigned long
-            #define num long
-            #define WORD_FORMAT "%ld"
-        #else
-            #error "Neither DIRAC16 nor DIRAC32 defined. 64-bit builds on machines without <stdint.h> are not supported."
-        #endif
-    #endif
-#endif
-
+#include "config.h"
 #include "map.h"
 #include "vector.h"
 
@@ -96,19 +55,20 @@ struct env {
 B[\|\&\^\~\>\<]              { /* Bitwise operations. */ TOKEN_OK }
 C(\>\=|\<\=|[\>\<\=]|!)      { /* Comparisons. */ TOKEN_OK }
 H[0-9A-F]+                   { /* Hexadecimal constants. */ TOKEN_OK }
+D(,)                         { /* Debugging. */ TOKEN_OK }
 "["                          { /* Lambda start. */ TOKEN_OK }
 "]"                          { /* Lambda end. */ TOKEN_OK }
 [\!\?]                       { /* First class functions. execution, conditional execution */ TOKEN_OK }
 [a-z]+                       { /* Variables. */ TOKEN_OK }
 [\:\;]                       { /* Read/write a variable. */ TOKEN_OK }
-F[\#\%\~\$]                  { /* while, for, do..while, if..else */ TOKEN_OK }
+F[\#\%\~\$\`]                { /* while, for, do..while, if..else */ TOKEN_OK }
 \{                           {
     /* Purposefully allows unterminated comments. */
     int c;
     while ((c = input()) != '}' && c != EOF)
         ;
 }
-I[\,\.\:\;]                  { /* Input and output, numeric and bytewise. */ TOKEN_OK }
+I[\<\>\,\.\:\;]              { /* Input and output, numeric and bytewise. */ TOKEN_OK }
 M[\<\>\:\;\.\,]              { /* Memory management: allocate, free, read, write. */ TOKEN_OK }
 \"(\\.|[^"\\])*\"            { /* Push a null-terminated string. */ TOKEN_OK }
 [\ \t\r\n\f]                 { /* Ignore whitespace. */ }
@@ -203,6 +163,13 @@ static void step() {
         } else if(*token == ';') {
             MONADIC_FETCH;
             printf(WORD_FORMAT, a);
+        } else if(*token == '<') {
+            num l = 0;
+            scanf(HEX_WORD_FORMAT, &l);
+            vector_push_back(stack, l);
+        } else if(*token == '>') {
+            MONADIC_FETCH;
+            printf(HEX_WORD_FORMAT, a);
         }
     } else if(*token == '"') {
         token += strlen(token) - 2;
@@ -261,11 +228,11 @@ static void step() {
         } else if(*token == '^') {
             DYADIC_FETCH; vector_push_back(stack, a ^ b);
         } else if(*token == '~') {
-            MONADIC_FETCH; vector_push_back(stack, ~a);
+            MONADIC_FETCH; vector_push_back(stack, ~(unum)a);
         } else if(*token == '>') {
-            DYADIC_FETCH; vector_push_back(stack, a >> b);
+            DYADIC_FETCH; vector_push_back(stack, (unum)a >> (unum)b);
         } else if(*token == '<') {
-            DYADIC_FETCH; vector_push_back(stack, a << b);
+            DYADIC_FETCH; vector_push_back(stack, (unum)a << (unum)b);
         }
     } else if(*token == 'C') {
         token++;
@@ -338,7 +305,7 @@ static void step() {
         value = a;
         hashmap_set(e->data, name, strlen(name), value);
     } else if(*token == ':') {
-        struct env * ce; char * name; num value;
+        struct env * ce; char * name; uintptr_t value;
         MONADIC_FETCH;
         ce = e;
         name = (char *) a;
@@ -350,6 +317,16 @@ static void step() {
             }
         }
         vector_push_back(stack, value);
+    } else if(*token == 'D') {
+        token++;
+        if(*token == ',') {
+            size_t i = 0;
+            printf("~~ Debugging ~~\n");
+            printf("Stack (from the bottom):\n");
+            for(; i < vector_size(stack); i++)
+                printf(WORD_FORMAT ": " WORD_FORMAT "\n", i, stack[i]);
+            printf("~~~~\n");
+        }
     } else if(*token == 'F') {
         token++;
         if(*token == '#') {
@@ -358,9 +335,9 @@ static void step() {
                 num det;
                 call(a);
                 det = vector_back(stack, 0);
+                vector_pop_back(stack);
                 if(!det)
                     break;
-                vector_pop_back(stack);
                 call(b);
             }
         } else if(*token == '%') {
@@ -388,6 +365,7 @@ static void step() {
                 call(b);
                 call(a);
                 det = vector_back(stack, 0);
+                vector_pop_back(stack);
                 if(!det)
                     break;
             }
@@ -398,6 +376,8 @@ static void step() {
             } else {
                 call(c);
             }
+        } else if(*token == '`') {
+            exit(0);
         }
     } else {
         fprintf(stderr, "Internal error: Unknown instruction: %s\n", token);
