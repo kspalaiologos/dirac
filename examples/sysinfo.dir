@@ -1,0 +1,7 @@
+[[#0C!][I,]F#$]putstr;"Bitness: "putstr:!1 1[#0C>][1B<^1+^]F#$I;10I,
+"Allocating an array, got pointer: 0x"putstr:!256M<#I>10I,
+"Performing identity-fill..."putstr:!0 255 1[^#`#M,]F%10I,
+"Checking correctness..."putstr:!0 255 1[^#`#`^M.C!["Failed."putstr:!F`]?]F%10I,
+"Freeing the array"putstr:!M>10I,
+
+
