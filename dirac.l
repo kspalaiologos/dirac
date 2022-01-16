@@ -64,7 +64,8 @@ D(,)                         { /* Debugging. */ TOKEN_OK }
 "]"                          { /* Lambda end. */ TOKEN_OK }
 [\!\?]                       { /* First class functions. execution, conditional execution */ TOKEN_OK }
 [a-z]+                       { /* Variables. */ TOKEN_OK }
-[\:\;]                       { /* Read/write a variable. */ TOKEN_OK }
+[\:\;]                       { /* Read/write a variable */ TOKEN_OK }
+\~[\:\;]                     { /* Outer scope access. */ TOKEN_OK }
 F[\#\%\~\$\`]                { /* while, for, do..while, if..else */ TOKEN_OK }
 \{                           {
     /* Purposefully allows unterminated comments. */
@@ -322,6 +323,41 @@ static void step() {
             }
         }
         vector_push_back(stack, value);
+    } else if(*token == '~') {
+        token++;
+        if(*token == ';') {
+            char * name; uintptr_t value, ign; struct env * last_env = NULL, * ce;
+            DYADIC_FETCH;
+            name = (char *) b;
+            value = a;
+            ce = e;
+            while(ce != NULL) {
+                if(hashmap_get(ce->data, name, strlen(name), &ign))
+                    last_env = ce;
+                ce = ce->parent;
+            }
+            if(last_env == NULL) {
+                fprintf(stderr, "Variable not bound: %s\n", name);
+                exit(1);
+            }
+            hashmap_set(last_env->data, name, strlen(name), value);
+        } else if(*token == ':') {
+            struct env * ce, * last_env = NULL; char * name; uintptr_t value, ign;
+            MONADIC_FETCH;
+            ce = e;
+            name = (char *) a;
+            while(ce != NULL) {
+                if(hashmap_get(ce->data, name, strlen(name), &ign))
+                    last_env = ce;
+                ce = ce->parent;
+            }
+            if(last_env == NULL) {
+                fprintf(stderr, "Variable not bound: %s\n", name);
+                exit(1);
+            }
+            hashmap_get(last_env->data, name, strlen(name), &value);
+            vector_push_back(stack, value);
+        }
     } else if(*token == 'D') {
         token++;
         if(*token == ',') {
