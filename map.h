@@ -72,7 +72,7 @@ static uint32_t hash_data(const unsigned char* data, size_t size) {
 	i = 0;
 	crc = 0xFFFFFFFF;
 	while (i < size) {
-		byte = message[i];
+		byte = data[i];
 		crc = crc ^ byte;
 		for (j = 7; j >= 0; j--) {
 			mask = -(crc & 1);

@@ -7,12 +7,13 @@
         #define unum uint32_t
         #define DIRAC_16
         #define WORD_FORMAT "%ld"
-        #define WORD_FORMAT "%ld"
+        #define HEX_WORD_FORMAT "%lX"
     #elif UINTPTR_MAX == 0xFFFFFFFF
         #define num int32_t
         #define unum uint32_t
         #define DIRAC_32
-        #define HEX_WORD_FORMAT "%lX"
+        #define WORD_FORMAT "%d"
+        #define HEX_WORD_FORMAT "%X"
     #elif UINTPTR_MAX == 0xFFFFFFFFFFFFFFFFu
         #define num int64_t
         #define unum uint64_t
