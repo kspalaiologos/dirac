@@ -38,7 +38,7 @@ static char * sdup(char * s) {
 static vector(char *) tokens;
 static vector(unsigned int) callstack;
 static vector(num) stack;
-static struct env * e;
+static struct env * e = NULL;
 
 static unsigned int tp;
 
@@ -59,6 +59,7 @@ struct env {
 B[\|\&\^\~\>\<]              { /* Bitwise operations. */ TOKEN_OK }
 C(\>\=|\<\=|[\>\<\=]|!)      { /* Comparisons. */ TOKEN_OK }
 H[0-9A-F]+                   { /* Hexadecimal constants. */ TOKEN_OK }
+\&[0-9]+                     { /* Arbitrary stack reordering. */ TOKEN_OK }
 D(,)                         { /* Debugging. */ TOKEN_OK }
 "["                          { /* Lambda start. */ TOKEN_OK }
 "]"                          { /* Lambda end. */ TOKEN_OK }
@@ -103,6 +104,8 @@ M[\<\>\:\;\.\,]              { /* Memory management: allocate, free, read, write
 #define MONADIC_FETCH \
     num a = vector_back(stack, 0); \
     vector_pop_back(stack);
+
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 static void step();
 
@@ -254,6 +257,15 @@ static void step() {
             DYADIC_FETCH; vector_push_back(stack, a < b);
         } else if(*token == '>') {
             DYADIC_FETCH; vector_push_back(stack, a > b);
+        }
+    } else if(*token == '&') {
+        num image[9] = { 0 }, n = 0;
+        for(int i = 0; i < MIN(9, vector_size(stack)); i++)
+            image[i] = stack[vector_size(stack) - i - 1];
+        token++; while(*token) {
+            if(*token - '0' > vector_size(stack)) { fprintf(stderr, "Stack underflow in &.\n"); exit(1); }
+            stack[vector_size(stack) - ++n] = image[*token - '0'];
+            token++;
         }
     } else if(*token == '$') {
         vector_pop_back(stack);
@@ -440,4 +452,3 @@ int main(int argc, char * argv[]) {
     }
     return 0;
 }
-
